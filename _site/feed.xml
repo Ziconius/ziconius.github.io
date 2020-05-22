@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-17T22:45:37+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Ziconius@localhost:~$  whoami</title><subtitle>Offensive security &amp; redteaming.  </subtitle><author><name>Kris</name></author><entry><title type="html">Deploying C2 Infrastructure to Kube using GKE</title><link href="http://localhost:4000/security/test-page/" rel="alternate" type="text/html" title="Deploying C2 Infrastructure to Kube using GKE" /><published>2020-05-14T00:00:00+01:00</published><updated>2020-05-14T09:32:03+01:00</updated><id>http://localhost:4000/security/test-page</id><content type="html" xml:base="http://localhost:4000/security/test-page/">&lt;p&gt;Deploying C2 infrastructure can be slow and tedious as hell, and that why theres now so many tools to automate deployments.&lt;/p&gt;
+
+&lt;p&gt;In this blog I’m going to discuss the deploying FudgeC2 to GKE along with other requirements, including TLS, and redirectors.&lt;/p&gt;
+
+&lt;p&gt;The blog will be broken down into 4 stages with the first logical step, stepping up Google Kube Engine (GKE), and the actual kubeCTL deployments switched. Why? Most people won’t need or want the GKE components and instead will be using Kube on ESXi/AWS/&lt;hypervisor of=&quot;&quot; choice=&quot;&quot;&gt; and will only be interested in the Kube components.&lt;/hypervisor&gt;&lt;/p&gt;
+
+&lt;p&gt;The blogs goal is to create a reference point for Kube C2 deployments and introducing people to new concepts&lt;/p&gt;
+
+&lt;p&gt;TLS certificates, and redirectors, and&lt;/p&gt;
+
+&lt;p&gt;Before we begin we’ll be looking at a quick overview of what a typical C” infrastruture looks like.&lt;/p&gt;
+
+&lt;p&gt;In a typical deployment we’ll have the C2 Server (or team server), redirectors, and implants.&lt;/p&gt;
+
+&lt;p&gt;In most test environments the use of redirectors is overlooked as they create additional overhead on setup, and offer protections against something which doesn’t exist in s test environment, the blue team.&lt;/p&gt;
+
+&lt;p&gt;A Typical test C2 environment looks like:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;------                                -----------
+| C2 | &amp;lt;---- malware.moozle.wtf ----&amp;gt; | Implant |
+------                                -----------
+   ^                               -----------
+   | --------- 10.10.10.17 -----&amp;gt;  | Implant |
+                                   -----------
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The problem with this deployment is 2 fold, the first is that it if the IP range your C2 server is on is automatically blocks by tooling or an analyst then you’ll have to migrate your entire C2 server.&lt;/p&gt;
+
+&lt;p&gt;This may not actually be possible, if you’ve created an implant with a hardcoded IP address (while this is uncommon we do need the flexibility to do so).&lt;/p&gt;
+
+&lt;p&gt;Secondly, it’s a pretty big give away if they browse to malware.moozle.wtf:5001 and theres a fudgeC2 login page staring them in the face…&lt;/p&gt;
+
+&lt;p&gt;To resolve this issue we use redirectors. These act as simple proxies which hide the location of the C2 server. This means if our domain is burnt by the Blueteam we can fallback to another domain, using a different redirector.&lt;/p&gt;
+
+&lt;p&gt;Redirectors are designed to be lightweight and quick to deploy, and should be protocol agnostic.&lt;/p&gt;
+
+&lt;p&gt;Deploying on Kube:
+Right - you’ve set up your Kube cluster, and we need to start deploying infrastructure? This is the easy bit, using KubeCTL we simple download the following file, and run:&lt;/p&gt;
+
+&lt;p&gt;kubectl create -f fudge-deploy.yaml&lt;/p&gt;
+
+&lt;p&gt;Great. Thats us done.&lt;/p&gt;
+
+&lt;p&gt;Assuming you’ve got very little knowledge of Kube, we can simplify what just happened:&lt;/p&gt;
+
+&lt;p&gt;We created a ‘deployment’ this contains all of the information relating to, well, this deployemnt of F2. Our server is deployed via a Docker pod (You can download the latest Docker of Fudge here: ziconius/FudgeC2:latest).&lt;/p&gt;
+
+&lt;p&gt;To access this pod we need to create ‘Services’, these act at routes into your pod. By default the FudgeC2 configuration exposes port 5001 to allow operators to access the C2 server and interact with implants.&lt;/p&gt;
+
+&lt;p&gt;We’ve created 3 load balencers in this situation, the first exposes port 80, and the second exposes 443.&lt;/p&gt;
+
+&lt;p&gt;There are numerous way to access different load balencers&lt;/p&gt;</content><author><name>Kris</name></author><category term="Command and Control" /><category term="Kuberenetes" /><summary type="html">Deploying C2 infrastructure can be slow and tedious as hell, and that why theres now so many tools to automate deployments.</summary></entry></feed>
