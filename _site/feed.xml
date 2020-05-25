@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-25T14:25:04+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">ziconius@localhost:~$  whoami</title><subtitle>Offensive security &amp; redteaming.</subtitle><author><name>Kris</name></author><entry><title type="html">Deploying C2 Infra to Google Kube Engine (GKE)</title><link href="http://localhost:4000/security/intro-to-c2-infra/" rel="alternate" type="text/html" title="Deploying C2 Infra to Google Kube Engine (GKE)" /><published>2020-05-23T00:00:00+01:00</published><updated>2020-05-14T09:32:03+01:00</updated><id>http://localhost:4000/security/intro-to-c2-infra</id><content type="html" xml:base="http://localhost:4000/security/intro-to-c2-infra/">&lt;p&gt;In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2020-05-25T18:00:33+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">ziconius@localhost:~$  whoami</title><subtitle>Offensive security &amp; redteaming.</subtitle><author><name>Kris</name></author><entry><title type="html">Deploying C2 Infra to Google Kube Engine (GKE)</title><link href="http://localhost:4000/security/intro-to-c2-infra/" rel="alternate" type="text/html" title="Deploying C2 Infra to Google Kube Engine (GKE)" /><published>2020-05-23T00:00:00+01:00</published><updated>2020-05-14T09:32:03+01:00</updated><id>http://localhost:4000/security/intro-to-c2-infra</id><content type="html" xml:base="http://localhost:4000/security/intro-to-c2-infra/">&lt;p&gt;In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’ll be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of Kube, like Microk8s.&lt;/p&gt;
 
 &lt;h2 id=&quot;overview-of-common-c2-infrastucture&quot;&gt;Overview of Common C2 Infrastucture&lt;/h2&gt;
 
@@ -32,7 +32,7 @@
     &lt;p&gt;If the blueteam identifies a malicious domain, any implant regardless of domain, will be flagged and blocked as they are sharing a single IP address. This means any low-and-slow backup implants will be detected as they will be calling back to the same IP as the identified domain.&lt;/p&gt;
   &lt;/li&gt;
   &lt;li&gt;
-    &lt;p&gt;You don’t want to have your WebUI running on the same address your listeners. Imagine the reaction of a blueteamer connecting to your WebUI mid redteam? You’re covers been blown, and you’re going to be mockingly subtweeted at for the next week.&lt;/p&gt;
+    &lt;p&gt;You don’t want to have your WebUI running on the same address your listeners. Imagine the reaction of a blueteamer connecting to your WebUI mid redteam? Your covers been blown, and you’re going to be mockingly subtweeted at for the next week.&lt;/p&gt;
   &lt;/li&gt;
   &lt;li&gt;
     &lt;p&gt;You can deploy redirectors in specific regions or clouds. This is a minor advantage that can support contractual requirements with your clients, or even edge-case objectives.&lt;/p&gt;
@@ -215,7 +215,7 @@ terraform apply
 
 &lt;p&gt;You’ll be prompted to confirm the changes and now we can check our Cloudflare DNS page to see our updated/created domain name ‘malware.moozle.wtf’.&lt;/p&gt;
 
-&lt;p&gt;The drawn back to using Terraform like this is that we must manually update our DNS if the external IP address of our service changes. This is unlikely, but it only takes forgetting for a few hours to miss critical implant checkins.&lt;/p&gt;
+&lt;p&gt;The draw back to using Terraform like this is that we must manually update our DNS if the external IP address of our service changes. This is unlikely, but it only takes forgetting for a few hours to miss critical implant checkins.&lt;/p&gt;
 
 &lt;h3 id=&quot;via-external-dns&quot;&gt;Via External-DNS&lt;/h3&gt;
 
@@ -327,7 +327,7 @@ terraform apply
 &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kubectl delete service listener-http
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Re-running our services.yaml file will not reroll our untouched services, and will only created the deleted previously deleted service ‘listener-http’.&lt;/p&gt;
+&lt;p&gt;Re-running our services.yaml file will not reroll our untouched services, and will only create the deleted previously deleted service ‘listener-http’.&lt;/p&gt;
 
 &lt;p&gt;If you have deployed your DNS through Terraform, or via your DNS providers WebUI you will now need to update the record, however, if you deployed using the External-DNS deployment (and it is still running) you will now see your DNS records match and everything has automatically aligned.&lt;/p&gt;
 
@@ -341,4 +341,4 @@ kubectl delete -f ext-dns.yaml
 
 &lt;p class=&quot;notice--warning&quot;&gt;You should also be aware that your DNS is still resolving to the last known service IP address. I like to update all of my DNS records to point to localhost once I am finished using them.&lt;/p&gt;
 
-&lt;p&gt;If you’ve got any questions or comments, feel free to Tweet at me or DM me directly &lt;a href=&quot;https://twitter.com/ziconius&quot;&gt;@ziconius&lt;/a&gt;!&lt;/p&gt;</content><author><name>Kris</name></author><category term="Command and Control" /><category term="Kuberenetes" /><summary type="html">In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s.</summary></entry></feed>
+&lt;p&gt;If you’ve got any questions or comments, feel free to Tweet at me or DM me directly &lt;a href=&quot;https://twitter.com/ziconius&quot;&gt;@ziconius&lt;/a&gt;!&lt;/p&gt;</content><author><name>Kris</name></author><category term="Command and Control" /><category term="Kuberenetes" /><summary type="html">In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’ll be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of Kube, like Microk8s.</summary></entry></feed>

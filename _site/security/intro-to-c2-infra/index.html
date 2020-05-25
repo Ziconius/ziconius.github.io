@@ -10,7 +10,7 @@
     <meta charset="utf-8">
 
 <!-- begin _includes/seo.html --><title>Deploying C2 Infra to Google Kube Engine (GKE) - ziconius@localhost:~$  whoami</title>
-<meta name="description" content="In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s.  ">
+<meta name="description" content="In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’ll be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of Kube, like Microk8s.  ">
 
 
   <meta name="author" content="Kris">
@@ -23,7 +23,7 @@
 <meta property="og:url" content="http://localhost:4000/security/intro-to-c2-infra/">
 
 
-  <meta property="og:description" content="In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s.  ">
+  <meta property="og:description" content="In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’ll be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of Kube, like Microk8s.  ">
 
 
 
@@ -290,7 +290,7 @@
 
   <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
     <meta itemprop="headline" content="Deploying C2 Infra to Google Kube Engine (GKE)">
-    <meta itemprop="description" content="In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s.">
+    <meta itemprop="description" content="In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’ll be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of Kube, like Microk8s.">
     <meta itemprop="datePublished" content="2020-05-23T00:00:00+01:00">
     <meta itemprop="dateModified" content="2020-05-14T09:32:03+01:00">
 
@@ -314,7 +314,7 @@
 
       <section class="page__content" itemprop="text">
         
-        <p>In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s.</p>
+        <p>In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’ll be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of Kube, like Microk8s.</p>
 
 <h2 id="overview-of-common-c2-infrastucture">Overview of Common C2 Infrastucture</h2>
 
@@ -348,7 +348,7 @@
     <p>If the blueteam identifies a malicious domain, any implant regardless of domain, will be flagged and blocked as they are sharing a single IP address. This means any low-and-slow backup implants will be detected as they will be calling back to the same IP as the identified domain.</p>
   </li>
   <li>
-    <p>You don’t want to have your WebUI running on the same address your listeners. Imagine the reaction of a blueteamer connecting to your WebUI mid redteam? You’re covers been blown, and you’re going to be mockingly subtweeted at for the next week.</p>
+    <p>You don’t want to have your WebUI running on the same address your listeners. Imagine the reaction of a blueteamer connecting to your WebUI mid redteam? Your covers been blown, and you’re going to be mockingly subtweeted at for the next week.</p>
   </li>
   <li>
     <p>You can deploy redirectors in specific regions or clouds. This is a minor advantage that can support contractual requirements with your clients, or even edge-case objectives.</p>
@@ -531,7 +531,7 @@ terraform apply
 
 <p>You’ll be prompted to confirm the changes and now we can check our Cloudflare DNS page to see our updated/created domain name ‘malware.moozle.wtf’.</p>
 
-<p>The drawn back to using Terraform like this is that we must manually update our DNS if the external IP address of our service changes. This is unlikely, but it only takes forgetting for a few hours to miss critical implant checkins.</p>
+<p>The draw back to using Terraform like this is that we must manually update our DNS if the external IP address of our service changes. This is unlikely, but it only takes forgetting for a few hours to miss critical implant checkins.</p>
 
 <h3 id="via-external-dns">Via External-DNS</h3>
 
@@ -643,7 +643,7 @@ terraform apply
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete service listener-http
 </code></pre></div></div>
 
-<p>Re-running our services.yaml file will not reroll our untouched services, and will only created the deleted previously deleted service ‘listener-http’.</p>
+<p>Re-running our services.yaml file will not reroll our untouched services, and will only create the deleted previously deleted service ‘listener-http’.</p>
 
 <p>If you have deployed your DNS through Terraform, or via your DNS providers WebUI you will now need to update the record, however, if you deployed using the External-DNS deployment (and it is still running) you will now see your DNS records match and everything has automatically aligned.</p>
 

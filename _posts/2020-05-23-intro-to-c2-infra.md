@@ -11,7 +11,7 @@ tags:
   - Kuberenetes
 ---
 
-In this post I'll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I'l be doing this in Google Kubernetes Engine (GKE), though you'll be able to deploy via any flavour of kube, like Microk8s.
+In this post I'll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I'll be doing this in Google Kubernetes Engine (GKE), though you'll be able to deploy via any flavour of Kube, like Microk8s.
 
 
 ## Overview of Common C2 Infrastucture
@@ -47,7 +47,7 @@ Redirectors provide redteams with several benefits
 
  - If the blueteam identifies a malicious domain, any implant regardless of domain, will be flagged and blocked as they are sharing a single IP address. This means any low-and-slow backup implants will be detected as they will be calling back to the same IP as the identified domain.
 
- - You don't want to have your WebUI running on the same address your listeners. Imagine the reaction of a blueteamer connecting to your WebUI mid redteam? You're covers been blown, and you're going to be mockingly subtweeted at for the next week.
+ - You don't want to have your WebUI running on the same address your listeners. Imagine the reaction of a blueteamer connecting to your WebUI mid redteam? Your covers been blown, and you're going to be mockingly subtweeted at for the next week.
 
  - You can deploy redirectors in specific regions or clouds. This is a minor advantage that can support contractual requirements with your clients, or even edge-case objectives.
 
@@ -238,7 +238,7 @@ terraform apply
 
 You'll be prompted to confirm the changes and now we can check our Cloudflare DNS page to see our updated/created domain name 'malware.moozle.wtf'.
 
-The drawn back to using Terraform like this is that we must manually update our DNS if the external IP address of our service changes. This is unlikely, but it only takes forgetting for a few hours to miss critical implant checkins.
+The draw back to using Terraform like this is that we must manually update our DNS if the external IP address of our service changes. This is unlikely, but it only takes forgetting for a few hours to miss critical implant checkins.
 
 ### Via External-DNS
 
@@ -354,7 +354,7 @@ Using kubectl we will delete the specific service. To do this we will list the s
 kubectl delete service listener-http
 ```
 
-Re-running our services.yaml file will not reroll our untouched services, and will only created the deleted previously deleted service 'listener-http'.
+Re-running our services.yaml file will not reroll our untouched services, and will only create the deleted previously deleted service 'listener-http'.
 
 If you have deployed your DNS through Terraform, or via your DNS providers WebUI you will now need to update the record, however, if you deployed using the External-DNS deployment (and it is still running) you will now see your DNS records match and everything has automatically aligned.
 
