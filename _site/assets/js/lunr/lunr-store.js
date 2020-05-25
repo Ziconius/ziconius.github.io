@@ -1,7 +1,7 @@
 var store = [{
-        "title": "Deploying C2 Infrastructure to Kube using GKE",
-        "excerpt":"Deploying C2 infrastructure can be slow and tedious as hell, and that why theres now so many tools to automate deployments. In this blog I’m going to discuss the deploying FudgeC2 to GKE along with other requirements, including TLS, and redirectors. The blog will be broken down into 4 stages...","categories": ["Security"],
+        "title": "Deploying C2 Infra to Google Kube Engine (GKE)",
+        "excerpt":"In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s. Overview of Common C2 Infrastucture...","categories": ["Security"],
         "tags": ["Command and Control","Kuberenetes"],
-        "url": "http://localhost:4000/security/test-page/",
+        "url": "http://localhost:4000/security/intro-to-c2-infra/",
         "teaser": null
       }]

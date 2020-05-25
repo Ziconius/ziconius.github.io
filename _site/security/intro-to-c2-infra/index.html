@@ -1,0 +1,810 @@
+<!doctype html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.19.2 by Michael Rose
+  Copyright 2013-2019 Michael Rose - mademistakes.com | @mmistakes
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+-->
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+
+<!-- begin _includes/seo.html --><title>Deploying C2 Infra to Google Kube Engine (GKE) - ziconius@localhost:~$  whoami</title>
+<meta name="description" content="In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s.  ">
+
+
+  <meta name="author" content="Kris">
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="ziconius@localhost:~$  whoami">
+<meta property="og:title" content="Deploying C2 Infra to Google Kube Engine (GKE)">
+<meta property="og:url" content="http://localhost:4000/security/intro-to-c2-infra/">
+
+
+  <meta property="og:description" content="In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s.  ">
+
+
+
+  <meta property="og:image" content="http://localhost:4000/assets/images/cloudshell.jpg">
+
+
+
+
+
+  <meta property="article:published_time" content="2020-05-23T00:00:00+01:00">
+
+
+
+  <meta property="article:modified_time" content="2020-05-14T09:32:03+01:00">
+
+
+
+
+<link rel="canonical" href="http://localhost:4000/security/intro-to-c2-infra/">
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    
+      "@type": "Person",
+      "name": null,
+      "url": "http://localhost:4000/"
+    
+  }
+</script>
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ziconius@localhost:~$  whoami Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+
+<!--[if IE]>
+  <style>
+    /* old IE unsupported flexbox fixes */
+    .greedy-nav .site-title {
+      padding-right: 3em;
+    }
+    .greedy-nav button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+    }
+  </style>
+<![endif]-->
+
+
+
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use https://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+  </head>
+
+  <body class="layout--single wide">
+    <nav class="skip-links">
+  <h2 class="screen-reader-text">Skip links</h2>
+  <ul>
+    <li><a href="#site-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    <!--[if lt IE 9]>
+<div class="notice--danger align-center" style="margin: 0;">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience.</div>
+<![endif]-->
+
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        
+        <a class="site-title" href="/">
+          ziconius@localhost:~$  whoami
+          
+        </a>
+        <ul class="visible-links"><li class="masthead__menu-item">
+              <a href="/posts/">Posts</a>
+            </li><li class="masthead__menu-item">
+              <a href="/categories/">Categories</a>
+            </li><li class="masthead__menu-item">
+              <a href="/tags/">Tags</a>
+            </li><li class="masthead__menu-item">
+              <a href="/about/">About</a>
+            </li></ul>
+        
+        <button class="search__toggle" type="button">
+          <span class="visually-hidden">Toggle search</span>
+          <svg class="icon" width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15.99 16">
+            <path d="M15.5,13.12L13.19,10.8a1.69,1.69,0,0,0-1.28-.55l-0.06-.06A6.5,6.5,0,0,0,5.77,0,6.5,6.5,0,0,0,2.46,11.59a6.47,6.47,0,0,0,7.74.26l0.05,0.05a1.65,1.65,0,0,0,.5,1.24l2.38,2.38A1.68,1.68,0,0,0,15.5,13.12ZM6.4,2A4.41,4.41,0,1,1,2,6.4,4.43,4.43,0,0,1,6.4,2Z" transform="translate(-.01)"></path>
+          </svg>
+        </button>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">Toggle menu</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+  
+
+
+
+
+
+
+
+<div class="page__hero"
+  style=" background-image: url('');"
+>
+  
+    <img src="/assets/images/cloudshell.jpg" alt="Deploying C2 Infra to Google Kube Engine (GKE)" class="page__hero-image">
+  
+  
+</div>
+
+
+
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+
+
+<div itemscope itemtype="https://schema.org/Person">
+
+  
+    <div class="author__avatar">
+      
+        <img src="/assets/images/bio-photo.jpg" alt="Kris" itemprop="image">
+      
+    </div>
+  
+
+  <div class="author__content">
+    
+      <h3 class="author__name" itemprop="name">Kris</h3>
+    
+    
+      <div class="author__bio" itemprop="description">
+        <p>Offensive security &amp; C2 author.</p>
+
+      </div>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+
+      
+        
+          
+            <li><a href="https://twitter.com/ziconius" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-twitter-square" aria-hidden="true"></i><span class="label">Twitter</span></a></li>
+          
+        
+          
+            <li><a href="https://github.com/FudgeC2" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-github" aria-hidden="true"></i><span class="label">GitHub</span></a></li>
+          
+        
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+
+  <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
+    <meta itemprop="headline" content="Deploying C2 Infra to Google Kube Engine (GKE)">
+    <meta itemprop="description" content="In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s.">
+    <meta itemprop="datePublished" content="2020-05-23T00:00:00+01:00">
+    <meta itemprop="dateModified" content="2020-05-14T09:32:03+01:00">
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 id="page-title" class="page__title" itemprop="headline">Deploying C2 Infra to Google Kube Engine (GKE)
+</h1>
+          
+            <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  9 minute read
+
+</p>
+          
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        
+        <p>In this post I’ll be going through the basics of command and control infrastructure, key components, and automated deployment of your C2 infrastruture. I’l be doing this in Google Kubernetes Engine (GKE), though you’ll be able to deploy via any flavour of kube, like Microk8s.</p>
+
+<h2 id="overview-of-common-c2-infrastucture">Overview of Common C2 Infrastucture</h2>
+
+<p>Typically, in a small test environment you’ll have a couple of virtualised target hosts, and the C2 server deployed on an adjacent network.</p>
+
+<p>Depending on your test environment you also might be using domain names for your implants callback, rather than your C2’s IP address. Usually this is done via something like pfSense, or a simple /etc/hosts entry if you’re looking for the simplest method.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>10.10.10.0/24                        172.16.0.1/24
+------                                ------------
+| C2 | &lt;---- malware.moozle.wtf ----- | Infected |
+------                                |   host   |
+   ^                                  ------------
+   |                               ------------
+   | --------- 10.10.10.17 ------  | Infected |
+                                   |   host   |
+                                   ------------
+</code></pre></div></div>
+<p style="color:gray; font-size: 80%; text-align: center;"><em>A simple C2 setup</em></p>
+
+<p>This kind of test environment is good for testing functionality, stability of new scripts, tooling, and detection. It doesn’t however let you accurately test what would happen if you started infecting hosts on the other side of the internet in your targets environment.</p>
+
+<p>When deploying a production environment we want to add another layer into the diagram above to improve OpSec, and give us more flexibility with our deployment. For this we will use redirectors, these are responsible for separating our the callback domain on your C2, and the C2 server itself.</p>
+
+<p class="full"><img src="http://localhost:4000/assets/images/c2_infra_no_dns.png" alt="alt" /></p>
+<p style="color:gray; font-size: 80%; text-align: center;"><em>A C2 deployment using 2 redirectors.</em></p>
+
+<p>Redirectors provide redteams with several benefits</p>
+
+<ul>
+  <li>
+    <p>If the blueteam identifies a malicious domain, any implant regardless of domain, will be flagged and blocked as they are sharing a single IP address. This means any low-and-slow backup implants will be detected as they will be calling back to the same IP as the identified domain.</p>
+  </li>
+  <li>
+    <p>You don’t want to have your WebUI running on the same address your listeners. Imagine the reaction of a blueteamer connecting to your WebUI mid redteam? You’re covers been blown, and you’re going to be mockingly subtweeted at for the next week.</p>
+  </li>
+  <li>
+    <p>You can deploy redirectors in specific regions or clouds. This is a minor advantage that can support contractual requirements with your clients, or even edge-case objectives.</p>
+  </li>
+  <li>
+    <p>If you believe a tool/system has blacklisted your IP address rerolling your redirectors is incredibly easy and provides you with a fresh IP address. As we’ll see soon!</p>
+  </li>
+</ul>
+
+<h1 id="deploying-the-fudgec2-server">Deploying the FudgeC2 Server</h1>
+
+<p>For our C2 software we’re going to be using <a href="https://github.com/Ziconius/FudgeC2">FudgeC2</a> as the C2 server, and for deployment we’ll be using GKE and kubectl.</p>
+
+<p>If you’ve never setup GKE you can find more information about setup in the <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl">Google cloud docs</a>. For this post you’ll need to set up a new Kube cluster for the deployments.</p>
+
+<p>We’re going to start by creating a Kube deployment which will consist of three services, and our C2 pod. We’ll be focused on the services throughout this post and not the server configuration, as the C2 used can be any C2 which has a docker image! For more information see <a href="https://www.thec2matrix.com/">the C2 Matrix</a>.</p>
+
+<p>Start by opening Cloudshell in your Google Cloud and connecting to your cluster. From here on we’ll be using the kubectl command for most things. To access your cloud shell create a Kube cluster, and then select the connect option, shown below.</p>
+
+<p class="full"><img src="http://localhost:4000/assets/images/gke_connect.png" alt="alt" /></p>
+
+<p>Once we’re in cloudshell we need to create two files (<code class="language-plaintext highlighter-rouge">deployment.yaml</code>, and <code class="language-plaintext highlighter-rouge">services.yaml</code>), these files contain the data that kubectl will use to build our environments.</p>
+
+<details>
+  <summary>deployment.yaml</summary>
+  <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Deployment of FudgeC2</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">fudgec2-deployment</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="c1"># Change the image tag if you want to use a different C2 framework.</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">fudge-c2-server</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">ziconius/fudgec2:0.5.6</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="c1"># Default FudgeC2 webUI port</span>
+            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">5001</span>
+              <span class="na">name</span><span class="pi">:</span> <span class="s">webapp-access</span>
+            <span class="c1"># We'll be configuring the following listeners on our</span>
+            <span class="c1">#   C2 to communicate with our implants;.</span>
+            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
+              <span class="na">name</span><span class="pi">:</span> <span class="s">http-listener</span>
+            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">443</span>
+              <span class="na">name</span><span class="pi">:</span> <span class="s">https-listener</span>
+</code></pre></div>  </div>
+</details>
+
+<p>If you’re looking to use a C2 framework other than fudge you need to change the <code class="language-plaintext highlighter-rouge">image</code> attribute to the relevant docker repository for your chosen framework.</p>
+
+<details>
+  <summary>services.yaml</summary>
+  <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">fudge-server-lb</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
+  <span class="na">ports</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">port</span><span class="pi">:</span> <span class="m">443</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">5001</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">listener-http</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
+  <span class="na">ports</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">https</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">443</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">443</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">listener-https</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
+  <span class="na">ports</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">https</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">443</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">443</span>
+
+</code></pre></div>  </div>
+</details>
+<p><br /></p>
+
+<p>Now that we have these files inside our Cloudshell environment we run the following to deploy the code:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create -f deployment.yaml --dry-run=client
+kubectl create -f services.yaml --dry-run=client
+</code></pre></div></div>
+
+<p>If the dry run returns no errors, and we know our YAML is valid. Run the commands again without the <code class="language-plaintext highlighter-rouge">--dry-run=client</code> flag and lets get our deployment configured!</p>
+
+<p>Once the deployments have been rolled out we can get the IP address of our 3 services:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@cloudshell:~ <span class="o">(</span>fudge-deployment<span class="o">)</span><span class="nv">$ </span>kubectl get services
+NAME              TYPE           CLUSTER-IP     EXTERNAL-IP   PORT<span class="o">(</span>S<span class="o">)</span>                      AGE
+fudge-server-lb   LoadBalancer   10.40.2.39     <span class="o">[</span>IP]      5001:31943/TCP               2m3s
+kubernetes        ClusterIP      10.40.0.1      &lt;none&gt;        443/TCP                      11d
+listener-http     LoadBalancer   10.40.2.99     <span class="o">[</span>IP]     80:32652/TCP,443:31428/TCP   13s
+listener-https    LoadBalancer   10.40.11.208   <span class="o">[</span>IP]     80:32383/TCP,443:30262/TCP   13s
+</code></pre></div></div>
+
+<p>This output shows all of the information we need at this stage to begin a campaign. We can now create an implant which connects to either of our listener IP addresses and will forward our traffic on to mapped ports on our C2 server.</p>
+
+<p>So whats next? Lets look at DNS, and then how to reconfigure a service/redirector if something goes wrong.</p>
+
+<h1 id="configuring-dns">Configuring DNS</h1>
+<p>Ok so we’re targeting ACME Ltd, we’ve got our weaponised payload and we’re confident that we’ll get something beaconing back to us, but we’ve got an issue. What happens if need to reroll our redirector? We’ll lose our IP, and now we’ve got an implant calling back to an IP address we no longer own. Our client isn’t going to be a happy bunny.</p>
+
+<p>Secondly without DNS, HTTP requests calling back to an IP address without a hostname, plainly put, is strange. Go have a look at your internet traffic when you’re browsing, how many direct IP connections are you seeing? Not many, if at all.</p>
+
+<p>Setting up DNS can be done a few different ways, but here I’m going to look at 2 main routes, Terraform, and extending our YAML to automatically update our DNS. For this post I’m going to be using Cloudflare as the DNS provider, but most major DNS providers are supported.</p>
+
+<p>For this blog post we’re going to make sure we disable Cloudflares proxy feature, to enable traditional DNS. The result will look like so:</p>
+
+<p class="full"><img src="http://localhost:4000/assets/images/c2_infra_dns.png" alt="alt" /></p>
+
+<p style="color:gray; font-size: 80%; text-align: center;"><em>C2 infra using Cloudflare backed DNS, with 2 redirectors</em></p>
+
+<h3 id="via-terraform">Via Terraform</h3>
+<p>If you’ve not used Terraform before, you’ll quickly find it’s a hugely powerful tool for cloud orchestration. In fact this entire blog could have been written using Terraform, which would further simplify any cross cloud elements we might want (i.e. redirectors in AWS).</p>
+
+<p>Terraform uses the provider context for each service, with the provider exposing functionality. We’ll be using the Cloudflare terraform provider, as can be seen below:</p>
+
+<p>Ext_service.tf</p>
+<div class="language-terraform highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">provider</span> <span class="s2">"cloudflare"</span> <span class="p">{</span>
+  <span class="nx">email</span> <span class="p">=</span> <span class="s2">"&lt;YOUR EMAIL&gt;"</span>
+  <span class="nx">api_token</span> <span class="p">=</span> <span class="s2">"&lt;YOUR API_TOKEN&gt;"</span>
+<span class="p">}</span>
+
+<span class="k">variable</span> <span class="s2">"domain"</span> <span class="p">{</span>
+  <span class="nx">default</span> <span class="p">=</span> <span class="s2">"moozle.wtf"</span>
+<span class="p">}</span>
+
+<span class="k">resource</span> <span class="s2">"cloudflare_record"</span> <span class="s2">"malware"</span> <span class="p">{</span>
+  <span class="nx">zone_id</span>  <span class="p">=</span> <span class="s2">"&lt;ZONE ID&gt;"</span>
+  <span class="nx">name</span>    <span class="p">=</span> <span class="s2">"malware"</span>
+  <span class="nx">value</span>   <span class="p">=</span> <span class="s2">"&lt;SERVICE IP&gt;"</span>
+  <span class="nx">type</span>    <span class="p">=</span> <span class="s2">"A"</span>
+  <span class="nx">proxied</span> <span class="p">=</span> <span class="kc">false</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>cd to the directory containing your terraform file and run:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>terraform init
+terraform apply
+</code></pre></div></div>
+
+<p>You’ll be prompted to confirm the changes and now we can check our Cloudflare DNS page to see our updated/created domain name ‘malware.moozle.wtf’.</p>
+
+<p>The drawn back to using Terraform like this is that we must manually update our DNS if the external IP address of our service changes. This is unlikely, but it only takes forgetting for a few hours to miss critical implant checkins.</p>
+
+<h3 id="via-external-dns">Via External-DNS</h3>
+
+<p>Another tool that I’m a big fan of is <a href="https://github.com/kubernetes-sigs/external-dns">External-DNS</a>. External DNS works by setting up a deployment running within your GKE namespace, which your deployments can interact with during creation.</p>
+
+<p class="notice--warning">If you are deploying your external-DNS deployment in a non-GKE environment (or if you have disabled RBAC in GKE) you will need to use the deployment YAML for non-RBAC deployments which can be found on their GitHub page.</p>
+
+<p>We’ll need to setup our External-DNS deployment which can be done using the default deployment YAML. You’ll need to update the highlighted values at the bottom of the ext-dns.yaml file.</p>
+
+<details>
+  <summary>ext-dns.yaml</summary>
+  <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">ServiceAccount</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">external-dns</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">rbac.authorization.k8s.io/v1beta1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">ClusterRole</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">external-dns</span>
+<span class="na">rules</span><span class="pi">:</span>
+<span class="pi">-</span> <span class="na">apiGroups</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">"</span><span class="pi">]</span>
+  <span class="na">resources</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">services"</span><span class="pi">,</span><span class="s2">"</span><span class="s">endpoints"</span><span class="pi">,</span><span class="s2">"</span><span class="s">pods"</span><span class="pi">]</span>
+  <span class="na">verbs</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">get"</span><span class="pi">,</span><span class="s2">"</span><span class="s">watch"</span><span class="pi">,</span><span class="s2">"</span><span class="s">list"</span><span class="pi">]</span>
+<span class="pi">-</span> <span class="na">apiGroups</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">extensions"</span><span class="pi">]</span>
+  <span class="na">resources</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">ingresses"</span><span class="pi">]</span>
+  <span class="na">verbs</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">get"</span><span class="pi">,</span><span class="s2">"</span><span class="s">watch"</span><span class="pi">,</span><span class="s2">"</span><span class="s">list"</span><span class="pi">]</span>
+<span class="pi">-</span> <span class="na">apiGroups</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">"</span><span class="pi">]</span>
+  <span class="na">resources</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">nodes"</span><span class="pi">]</span>
+  <span class="na">verbs</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">list"</span><span class="pi">]</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">rbac.authorization.k8s.io/v1beta1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">ClusterRoleBinding</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">external-dns-viewer</span>
+<span class="na">roleRef</span><span class="pi">:</span>
+  <span class="na">apiGroup</span><span class="pi">:</span> <span class="s">rbac.authorization.k8s.io</span>
+  <span class="na">kind</span><span class="pi">:</span> <span class="s">ClusterRole</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">external-dns</span>
+<span class="na">subjects</span><span class="pi">:</span>
+<span class="pi">-</span> <span class="na">kind</span><span class="pi">:</span> <span class="s">ServiceAccount</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">external-dns</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">default</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">external-dns</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">strategy</span><span class="pi">:</span>
+    <span class="na">type</span><span class="pi">:</span> <span class="s">Recreate</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">external-dns</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">external-dns</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">serviceAccountName</span><span class="pi">:</span> <span class="s">external-dns</span>
+      <span class="na">containers</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">external-dns</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s">registry.opensource.zalan.do/teapot/external-dns:latest</span>
+        <span class="na">args</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">--source=service</span> <span class="c1"># ingress is also possible</span>
+        <span class="pi">-</span> <span class="s">--domain-filter=moozle.wtf</span> <span class="c1"># (optional) limit to only example.com domains; change to match the zone created above.</span>
+        <span class="pi">-</span> <span class="s">--provider=cloudflare</span>
+        <span class="na">env</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">CF_API_KEY</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">YOUR_CLOUDFLARE_API_KEY"</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">CF_API_EMAIL</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">YOUR_CLOUDFLARE_EMAIL"</span>
+</code></pre></div>  </div>
+</details>
+<p><br /></p>
+
+<p>Again, we run the <code class="language-plaintext highlighter-rouge">kubectl create -f ext-dns.yaml</code> command which will create our deployment. External-DNS is now ready to do the heavy lifting for us, but we need to update our services with new annotations, to create the DNS records we need.</p>
+
+<p>To add a DNS record we need up update our services.yaml to include the enternal-dns annotations</p>
+
+<summary>services.yaml</summary>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">listener-http</span>
+  <span class="c1"># Add and update the annotation value below</span>
+  <span class="na">annotations</span><span class="pi">:</span>
+    <span class="s">external-dns.alpha.kubernetes.io/hostname</span><span class="pi">:</span> <span class="s">ads.moozle.wtf</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">fudge</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
+  <span class="na">ports</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">https</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">443</span>
+    <span class="na">targetPort</span><span class="pi">:</span> <span class="m">443</span>
+</code></pre></div></div>
+
+<h1 id="rerolling-a-redirector">Rerolling a Redirector</h1>
+<p>For some reason you’ve got a redirector you need to reroll, we’ve also got a DNS entry pointing to it.</p>
+
+<p>Using kubectl we will delete the specific service. To do this we will list the service, find the service name, and run the delete command</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete service listener-http
+</code></pre></div></div>
+
+<p>Re-running our services.yaml file will not reroll our untouched services, and will only created the deleted previously deleted service ‘listener-http’.</p>
+
+<p>If you have deployed your DNS through Terraform, or via your DNS providers WebUI you will now need to update the record, however, if you deployed using the External-DNS deployment (and it is still running) you will now see your DNS records match and everything has automatically aligned.</p>
+
+<h1 id="cleaning-up-gke">Cleaning up GKE</h1>
+
+<p>The cleanup process for GKE is simple, we simply delete our deployment and services using kubectl:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete -f services.yaml
+kubectl delete -f deployment.yaml
+kubectl delete -f ext-dns.yaml
+</code></pre></div></div>
+
+<p class="notice--warning">You should also be aware that your DNS is still resolving to the last known service IP address. I like to update all of my DNS records to point to localhost once I am finished using them.</p>
+
+<p>If you’ve got any questions or comments, feel free to Tweet at me or DM me directly <a href="https://twitter.com/ziconius">@ziconius</a>!</p>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+  
+
+
+  
+  
+  
+
+  <p class="page__taxonomy">
+    <strong><i class="fas fa-fw fa-tags" aria-hidden="true"></i> Tags: </strong>
+    <span itemprop="keywords">
+    
+      
+      
+      <a href="/tags/#command-and-control" class="page__taxonomy-item" rel="tag">Command and Control</a><span class="sep">, </span>
+    
+      
+      
+      <a href="/tags/#kuberenetes" class="page__taxonomy-item" rel="tag">Kuberenetes</a>
+    
+    </span>
+  </p>
+
+
+
+
+  
+
+
+  
+  
+  
+
+  <p class="page__taxonomy">
+    <strong><i class="fas fa-fw fa-folder-open" aria-hidden="true"></i> Categories: </strong>
+    <span itemprop="keywords">
+    
+      
+      
+      <a href="/categories/#security" class="page__taxonomy-item" rel="tag">Security</a>
+    
+    </span>
+  </p>
+
+
+        
+          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time datetime="2020-05-14">May 14, 2020</time></p>
+        
+      </footer>
+
+      <section class="page__share">
+  
+
+  <a href="https://twitter.com/intent/tweet?text=Deploying+C2+Infra+to+Google+Kube+Engine+%28GKE%29%20http%3A%2F%2Flocalhost%3A4000%2Fsecurity%2Fintro-to-c2-infra%2F" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2Fsecurity%2Fintro-to-c2-infra%2F" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=http%3A%2F%2Flocalhost%3A4000%2Fsecurity%2Fintro-to-c2-infra%2F" class="btn btn--linkedin" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on LinkedIn"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+
+      
+    </div>
+
+    
+  </article>
+
+  
+  
+    <div class="page__related">
+      <h4 class="page__related-title">You May Also Enjoy</h4>
+      <div class="grid__wrapper">
+        
+          
+            
+      </div>
+    </div>
+  
+</div>
+
+    </div>
+
+    
+      <div class="search-content">
+        <div class="search-content__inner-wrap"><form class="search-content__form" onkeydown="return event.key != 'Enter';">
+    <label class="sr-only" for="search">
+      Enter your search term...
+    </label>
+    <input type="search" id="search" class="search-input" tabindex="-1" placeholder="Enter your search term..." />
+  </form>
+  <div id="results" class="results"></div></div>
+
+      </div>
+    
+
+    <div id="footer" class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        <div class="page__footer-follow">
+  <ul class="social-icons">
+    
+
+    
+      
+        
+          <li><a href="https://twitter.com/Ziconius" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-twitter-square" aria-hidden="true"></i> Twitter</a></li>
+        
+      
+        
+          <li><a href="https://github.com/Ziconius/FudgeC2" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-github" aria-hidden="true"></i> GitHub</a></li>
+        
+      
+    
+
+    <li><a href="/feed.xml"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+  </ul>
+</div>
+
+<div class="page__footer-copyright">&copy; 2020 ziconius@localhost:~$  whoami. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+  <script src="/assets/js/main.min.js"></script>
+  <script src="https://kit.fontawesome.com/4eee35f757.js"></script>
+
+
+
+
+<script src="/assets/js/lunr/lunr.min.js"></script>
+<script src="/assets/js/lunr/lunr-store.js"></script>
+<script src="/assets/js/lunr/lunr-en.js"></script>
+
+
+
+
+
+
+
+  </body>
+</html>
